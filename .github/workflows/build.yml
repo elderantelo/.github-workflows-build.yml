@@ -1,0 +1,53 @@
+name: Build Windows EXE (Calculadora_Matrices_3D)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Enable long paths (Windows)
+        run: git config --system core.longpaths true
+
+      - name: Upgrade build tooling
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip --version
+          python --version
+
+      - name: Install project deps
+        run: |
+          if exist requirements.txt (
+            pip install -r requirements.txt
+          )
+          pip install pyinstaller==6.6.0 pyinstaller-hooks-contrib
+
+      - name: Show installed packages
+        run: pip list
+
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          # Asegúrate que el archivo esté en la raíz del repo con este nombre exacto:
+          if (-Not (Test-Path "Calculadora_Matrices_3D.py")) { throw "No se encuentra Calculadora_Matrices_3D.py en la raíz del repo." }
+
+          # FLAGS útiles:
+          #  --noconfirm   : no preguntes en sobrescrituras
+          #  --clean       : limpia cachés de builds previas
+          #  --noconsole   : quita ventana negra si tu app es GUI (Tkinter/Qt)
+          #  --hidden-import: para módulos que PyInstaller no detecta (sympy, etc.)
+          #  --add-data    : incluye archivos (en Windows usa ; como separador)
+
+          pyinstaller --onefile --name Calculadora_Matrices_3D `
+            --noco
