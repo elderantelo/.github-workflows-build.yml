@@ -1,0 +1,40 @@
+name: Build Windows EXE (Calculadora_Matrices_3D)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'   # ← Aquí está fijado a Python 3.10
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          if exist requirements.txt (
+            pip install -r requirements.txt
+          )
+          pip install pyinstaller
+
+      - name: Build EXE (onefile)
+        shell: pwsh
+        run: |
+          pyinstaller --onefile --name Calculadora_Matrices_3D `
+            --hidden-import sympy `
+            Calculadora_Matrices_3D.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Calculadora_Matrices_3D-windows-exe
+          path: dist/**
+          if-no-files-found: error
